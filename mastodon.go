@@ -9,6 +9,8 @@ import (
     "time"
 )
 
+type Config map[string]string
+
 const (
     STATUS_GOOD = iota
     STATUS_BAD
@@ -34,14 +36,14 @@ func (si *StatusInfo) IsBad() bool {
     return si.Status == STATUS_BAD
 }
 
-func Battery() *StatusInfo {
+func Battery(c *Config) *StatusInfo {
     si := NewStatus()
     bi := ReadBatteryInfo(0)
-    prefix := "BAT"
+    prefix := "⚠"
     if bi.IsCharging() {
-        prefix = "CHR"
+        prefix = "⚡"
     } else if bi.IsFull() {
-        prefix = "FULL"
+        prefix = "F"
     }
     si.FullText = fmt.Sprintf(
         "%s %.1f %s (%.1fW)",
@@ -59,7 +61,7 @@ func Battery() *StatusInfo {
     return si
 }
 
-func CPU() *StatusInfo {
+func CPU(c *Config) *StatusInfo {
     si := NewStatus()
     cpuUsage := CpuUsage()
     si.FullText = fmt.Sprintf("CPU %.1f", cpuUsage)
@@ -73,10 +75,10 @@ func CPU() *StatusInfo {
     return si
 }
 
-func Disk() *StatusInfo {
+func Disk(c *Config) *StatusInfo {
     si := NewStatus()
     free, total := DiskUsage("/")
-    si.FullText = fmt.Sprintf("%s/%s", HumanFileSize(free), HumanFileSize(total))
+    si.FullText = fmt.Sprintf("HDD %s/%s", HumanFileSize(free), HumanFileSize(total))
     if (free / total) < .1 {
         si.Status = STATUS_BAD
     } else {
@@ -85,11 +87,12 @@ func Disk() *StatusInfo {
     return si
 }
 
-func Memory() *StatusInfo {
+func Memory(c *Config) *StatusInfo {
     si := NewStatus()
     free, total := MemInfo()
-    si.FullText = fmt.Sprintf("RAM %s/%s", HumanFileSize(free), HumanFileSize(total))
-    if (free / total) < .1 {
+    used := total - free
+    si.FullText = fmt.Sprintf("RAM %s/%s", HumanFileSize(used), HumanFileSize(total))
+    if (used / total) > .75 {
         si.Status = STATUS_BAD
     } else {
         si.Status = STATUS_GOOD
@@ -97,7 +100,7 @@ func Memory() *StatusInfo {
     return si
 }
 
-func LoadAvg() *StatusInfo {
+func LoadAvg(c *Config) *StatusInfo {
     si := NewStatus()
     cpu := float64(runtime.NumCPU())
     one, five, fifteen := ReadLoadAvg()
@@ -110,26 +113,26 @@ func LoadAvg() *StatusInfo {
     return si
 }
 
-func Clock() *StatusInfo {
+func Clock(c *Config) *StatusInfo {
     si := NewStatus()
     si.FullText = time.Now().Format("2006-01-02 15:04:05")
     return si
 }
 
-func IPAddress() *StatusInfo {
+func IPAddress(c *Config) *StatusInfo {
     si := NewStatus()
     si.FullText = IfaceAddr("wlan0")
     return si
 }
 
-func Hostname() *StatusInfo {
+func Hostname(c *Config) *StatusInfo {
     si := NewStatus()
     host, _ := os.Hostname()
     si.FullText = host
     return si
 }
 
-func Uptime() *StatusInfo {
+func Uptime(c *Config) *StatusInfo {
     buf := new(syscall.Sysinfo_t)
     syscall.Sysinfo(buf)
     si := NewStatus()

@@ -1,10 +1,26 @@
 package mastodon
 
-import "syscall"
+import (
+    "fmt"
+    "strings"
+)
 
 func MemInfo() (free float64, total float64) {
-    // Return free and total bytes of RAM.
-    buf := new(syscall.Sysinfo_t)
-    syscall.Sysinfo(buf)
-    return float64(buf.Freeram), float64(buf.Totalram)
+	mem := map[string]float64{
+		"MemTotal": 0,
+		"MemFree": 0,
+		"Buffers": 0,
+		"Cached": 0,
+	}
+    callback := func(line string) bool {
+        fields := strings.Split(line, ":")
+        if _, ok := mem[fields[0]]; ok {
+            var val float64
+            fmt.Sscanf(fields[1], "%f", &val)
+            mem[fields[0]] = val * 1024
+        }
+        return true
+    }
+    ReadLines("/proc/meminfo", callback)
+    return mem["MemFree"] + mem["Buffers"] + mem["Cached"], mem["MemTotal"]
 }

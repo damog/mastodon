@@ -11,7 +11,7 @@ import (
     "time"
 )
 
-type StatusSource func() *mastodon.StatusInfo
+type StatusSource func(*mastodon.Config) *mastodon.StatusInfo
 
 var Modules = map[string]StatusSource{
     "battery": mastodon.Battery,
@@ -25,7 +25,7 @@ var Modules = map[string]StatusSource{
     "uptime": mastodon.Uptime,
 }
 
-var config = map[string]string{
+var config = mastodon.Config{
     "interval": "1",
     "order": "cpu,memory,disk,ip,battery,loadavg,clock",
     "color_good": "#00d000",
@@ -70,7 +70,7 @@ func main() {
     PrintHeader()
     for {
         for idx, module_name := range(module_names) {
-            si := Modules[module_name]()
+            si := Modules[module_name](&config)
             color := config["color_normal"]
             if si.IsGood() {
                 color = config["color_good"]
