@@ -1,7 +1,7 @@
 package main
 
 import (
-    "./src/mastodon"
+    "github.com/coleifer/mastodon/src/mastodon"
     "encoding/json"
     "fmt"
     "os"
