@@ -1,9 +1,9 @@
 package main
 
 import (
-    "github.com/coleifer/mastodon/src/mastodon"
     "encoding/json"
     "fmt"
+    "github.com/coleifer/mastodon"
     "os"
     "path/filepath"
     "strconv"
