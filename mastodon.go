@@ -39,12 +39,12 @@ func (si *StatusInfo) IsBad() bool {
 func Battery(c *Config) *StatusInfo {
     si := NewStatus()
     bi := ReadBatteryInfo(0)
-    prefix := "⚠"
+    prefix := "BAT"
     if bi.IsCharging() {
-        prefix = "⚡"
+        prefix = "CHR"
     }
     if bi.IsFull() {
-        prefix = "ƭ"
+        prefix = "FULL"
         si.FullText = fmt.Sprintf(
             "%s %.1f%%",
             prefix,
@@ -70,7 +70,7 @@ func Battery(c *Config) *StatusInfo {
 func CPU(c *Config) *StatusInfo {
     si := NewStatus()
     cpuUsage := CpuUsage()
-    si.FullText = fmt.Sprintf("Č %.1f%%", cpuUsage)
+    si.FullText = fmt.Sprintf("C %.1f%%", cpuUsage)
     if cpuUsage < 15 {
         si.Status = STATUS_GOOD
     } else if cpuUsage < 75 {
@@ -84,7 +84,7 @@ func CPU(c *Config) *StatusInfo {
 func Disk(c *Config) *StatusInfo {
     si := NewStatus()
     free, total := DiskUsage("/")
-    si.FullText = fmt.Sprintf("Đ %s/%s", HumanFileSize(free), HumanFileSize(total))
+    si.FullText = fmt.Sprintf("D %s/%s", HumanFileSize(free), HumanFileSize(total))
     if (free / total) < .1 {
         si.Status = STATUS_BAD
     } else {
@@ -97,7 +97,7 @@ func Memory(c *Config) *StatusInfo {
     si := NewStatus()
     free, total := MemInfo()
     used := total - free
-    si.FullText = fmt.Sprintf("Ŕ %s/%s", HumanFileSize(used), HumanFileSize(total))
+    si.FullText = fmt.Sprintf("R %s/%s", HumanFileSize(used), HumanFileSize(total))
     if (used / total) > .75 {
         si.Status = STATUS_BAD
     } else {
