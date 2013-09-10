@@ -96,11 +96,11 @@ func Disk(c *Config) *StatusInfo {
 func Memory(c *Config) *StatusInfo {
     si := NewStatus()
     free, total := MemInfo()
-    used := total - free
-    si.FullText = fmt.Sprintf("R %s/%s", HumanFileSize(used), HumanFileSize(total))
-    if (used / total) > .75 {
+    percentUsed := 100 * (total - free) / total
+    si.FullText = fmt.Sprintf("R %.1f%%", percentUsed)
+    if percentUsed > 75 {
         si.Status = STATUS_BAD
-    } else {
+    } else if percentUsed < 25 {
         si.Status = STATUS_GOOD
     }
     return si
