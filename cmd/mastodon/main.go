@@ -83,7 +83,7 @@ func main() {
             }
         }
         jsonData, _ := json.Marshal(jsonArray)
-        fmt.Printf(string(jsonData))
+        fmt.Print(string(jsonData))
         fmt.Printf(",\n")
         time.Sleep(duration)
     }
