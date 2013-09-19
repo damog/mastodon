@@ -68,7 +68,7 @@ func Battery(c *Config) *StatusInfo {
         si.FullText = fmt.Sprintf("%s %s", prefix, barString)
     } else {
         si.FullText = fmt.Sprintf(
-            "%s %s %s (%.1fW)",
+            "%s %s (%s %.1fW)",
             prefix,
             barString,
             HumanDuration(int64(bi.SecondsRemaining)),
