@@ -105,7 +105,7 @@ func main() {
     for {
         for idx, module_name := range(module_names) {
             si := Modules[module_name](&config)
-            color := config.Data["color_normal"]
+            color := config.Data[config.Data[module_name]]
             if si.IsBad() {
                 color = config.Data["color_bad"]
             }
