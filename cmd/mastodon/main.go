@@ -106,9 +106,7 @@ func main() {
         for idx, module_name := range(module_names) {
             si := Modules[module_name](&config)
             color := config.Data["color_normal"]
-            if si.IsGood() {
-                color = config.Data[config.Data[module_name]]
-            } else if si.IsBad() {
+            if si.IsBad() {
                 color = config.Data["color_bad"]
             }
             jsonArray[idx] = map[string]string{

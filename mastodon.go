@@ -76,10 +76,6 @@ func Battery(c *Config) *StatusInfo {
     }
     if bi.PercentRemaining < 15 {
         si.Status = STATUS_BAD
-    } else if bi.PercentRemaining < 75 {
-        si.Status = STATUS_NORMAL
-    } else {
-        si.Status = STATUS_GOOD
     }
     return si
 }
@@ -89,11 +85,7 @@ func CPU(c *Config) *StatusInfo {
     cpuUsage := CpuUsage()
     barString := getBarString(cpuUsage, c.BarSize)
     si.FullText = fmt.Sprintf("C %s", barString)
-    if cpuUsage < 15 {
-        si.Status = STATUS_GOOD
-    } else if cpuUsage < 75 {
-        si.Status = STATUS_NORMAL
-    } else {
+    if cpuUsage > 80 {
         si.Status = STATUS_BAD
     }
     return si
@@ -107,8 +99,6 @@ func Disk(c *Config) *StatusInfo {
     si.FullText = fmt.Sprintf("D %s", barString)
     if (free / total) < .1 {
         si.Status = STATUS_BAD
-    } else {
-        si.Status = STATUS_GOOD
     }
     return si
 }
@@ -120,8 +110,6 @@ func Memory(c *Config) *StatusInfo {
     si.FullText = fmt.Sprintf("R %s", getBarString(percentUsed, c.BarSize))
     if percentUsed > 75 {
         si.Status = STATUS_BAD
-    } else if percentUsed < 25 {
-        si.Status = STATUS_GOOD
     }
     return si
 }
@@ -133,8 +121,6 @@ func LoadAvg(c *Config) *StatusInfo {
     si.FullText = fmt.Sprintf("%.2f %.2f %.2f", one, five, fifteen)
     if one > cpu {
         si.Status = STATUS_BAD
-    } else {
-        si.Status = STATUS_GOOD
     }
     return si
 }
