@@ -2,6 +2,7 @@
 package mastodon
 
 import (
+    "bytes"
     "fmt"
     "os"
     "runtime"
@@ -9,7 +10,10 @@ import (
     "time"
 )
 
-type Config map[string]string
+type Config struct {
+    Data map[string]string
+    BarSize int
+}
 
 const (
     STATUS_GOOD = iota
@@ -36,24 +40,37 @@ func (si *StatusInfo) IsBad() bool {
     return si.Status == STATUS_BAD
 }
 
+func getBarString(percent float64, bar_size int) string {
+    var bar bytes.Buffer
+    cutoff := int(percent * .01 * float64(bar_size))
+    bar.WriteString("[")
+    for i := 0; i < bar_size; i += 1 {
+        if i <= cutoff {
+            bar.WriteString("#")
+        } else {
+            bar.WriteString(" ")
+        }
+    }
+    bar.WriteString("]")
+    return bar.String()
+}
+
 func Battery(c *Config) *StatusInfo {
     si := NewStatus()
     bi := ReadBatteryInfo(0)
+    barString := getBarString(bi.PercentRemaining, c.BarSize)
     prefix := "BAT"
     if bi.IsCharging() {
         prefix = "CHR"
     }
     if bi.IsFull() {
         prefix = "FULL"
-        si.FullText = fmt.Sprintf(
-            "%s %.1f%%",
-            prefix,
-            bi.PercentRemaining)
+        si.FullText = fmt.Sprintf("%s %s", prefix, barString)
     } else {
         si.FullText = fmt.Sprintf(
-            "%s %.1f%% %s (%.1fW)",
+            "%s %s %s (%.1fW)",
             prefix,
-            bi.PercentRemaining,
+            barString,
             HumanDuration(int64(bi.SecondsRemaining)),
             bi.Consumption)
     }
@@ -70,7 +87,8 @@ func Battery(c *Config) *StatusInfo {
 func CPU(c *Config) *StatusInfo {
     si := NewStatus()
     cpuUsage := CpuUsage()
-    si.FullText = fmt.Sprintf("C %.1f%%", cpuUsage)
+    barString := getBarString(cpuUsage, c.BarSize)
+    si.FullText = fmt.Sprintf("C %s", barString)
     if cpuUsage < 15 {
         si.Status = STATUS_GOOD
     } else if cpuUsage < 75 {
@@ -84,7 +102,9 @@ func CPU(c *Config) *StatusInfo {
 func Disk(c *Config) *StatusInfo {
     si := NewStatus()
     free, total := DiskUsage("/")
-    si.FullText = fmt.Sprintf("D %s/%s", HumanFileSize(free), HumanFileSize(total))
+    freePercent := 100 * (free / total)
+    barString := getBarString(freePercent, c.BarSize)
+    si.FullText = fmt.Sprintf("D %s", barString)
     if (free / total) < .1 {
         si.Status = STATUS_BAD
     } else {
@@ -97,7 +117,7 @@ func Memory(c *Config) *StatusInfo {
     si := NewStatus()
     free, total := MemInfo()
     percentUsed := 100 * (total - free) / total
-    si.FullText = fmt.Sprintf("R %.1f%%", percentUsed)
+    si.FullText = fmt.Sprintf("R %s", getBarString(percentUsed, c.BarSize))
     if percentUsed > 75 {
         si.Status = STATUS_BAD
     } else if percentUsed < 25 {
