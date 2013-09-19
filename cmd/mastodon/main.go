@@ -100,6 +100,12 @@ func main() {
     duration := ReadInterval(config)
 
     module_names := strings.Split(config.Data["order"], ",")
+    for _, module_name := range(module_names) {
+        if _, ok := config.Data[module_name]; !ok {
+            config.Data[module_name] = "color_normal"
+        }
+    }
+
     jsonArray := make([]map[string]string, len(module_names))
     PrintHeader()
     for {
