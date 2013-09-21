@@ -24,13 +24,14 @@ var Modules = map[string]StatusSource{
     "loadavg": mastodon.LoadAvg,
     "memory": mastodon.Memory,
     "uptime": mastodon.Uptime,
+    "weather": mastodon.Weather,
 }
 
 func getDefaultConfig() mastodon.Config {
     var config mastodon.Config
     config.Data = map[string]string{
         "interval": "1",
-        "order": "cpu,memory,disk,battery,ip,loadavg,clock",
+        "order": "weather,cpu,memory,disk,battery,ip,loadavg,clock",
         "bar_size": "10",
         "color_good": "#00d000",
         "color_normal": "#cccccc",
@@ -61,6 +62,9 @@ func getDefaultConfig() mastodon.Config {
     return config
 }
 
+func ReadXresources(c mastodon.Config) {
+}
+
 func ReadConfig(c mastodon.Config) {
     configHome := os.Getenv("XDG_CONFIG_HOME")
     if configHome == "" {
@@ -72,9 +76,7 @@ func ReadConfig(c mastodon.Config) {
             pieces := strings.Split(line, "=")
             key := strings.Trim(pieces[0], " \t\r")
             value := strings.Trim(pieces[1], " \t\r")
-            if _, ok := c.Data[key]; ok {
-                c.Data[key] = value
-            }
+            c.Data[key] = value
             return true
         }
         mastodon.ReadLines(configFile, LineHandler)

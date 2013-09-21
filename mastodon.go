@@ -151,3 +151,29 @@ func Uptime(c *Config) *StatusInfo {
     si.FullText = fmt.Sprintf("U: %s", HumanDuration(buf.Uptime))
     return si
 }
+
+// Cache weather data.
+var latestWeatherStatus StatusInfo
+var latestWeatherCheck time.Time
+
+func Weather(c *Config) *StatusInfo {
+    si := NewStatus()
+    if time.Since(latestWeatherCheck) < (time.Duration(1800) * time.Second) {
+        return &latestWeatherStatus
+    }
+    forecast, err := ReadWeather(c.Data["weather_key"], c.Data["weather_zip"])
+    latestWeatherCheck = time.Now()
+    if err != nil || len(forecast.Forecast.SimpleForecast.ForecastDay) == 0 {
+        si.FullText = "Error fetching weather"
+        si.Status = STATUS_BAD
+    } else {
+        today := forecast.Forecast.SimpleForecast.ForecastDay[0]
+        si.FullText = fmt.Sprintf(
+            "%s H %s, L %s",
+            today.Conditions,
+            today.High.Fahrenheit,
+            today.Low.Fahrenheit)
+    }
+    latestWeatherStatus = *si
+    return si
+}
