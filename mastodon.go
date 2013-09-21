@@ -168,11 +168,15 @@ func Weather(c *Config) *StatusInfo {
         si.Status = STATUS_BAD
     } else {
         today := forecast.Forecast.SimpleForecast.ForecastDay[0]
+        next := forecast.Forecast.SimpleForecast.ForecastDay[1]
         si.FullText = fmt.Sprintf(
-            "%s H %s, L %s",
+            "%s %s/%s",
             today.Conditions,
             today.High.Fahrenheit,
             today.Low.Fahrenheit)
+        if next.Conditions != today.Conditions {
+            si.FullText += fmt.Sprintf(" (%s)", next.Conditions)
+        }
     }
     latestWeatherStatus = *si
     return si
