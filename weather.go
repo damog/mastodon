@@ -27,8 +27,8 @@ func ReadWeather(apiKey string, zipCode string) (*Forecast, error) {
     forecast := new(Forecast)
     url := fmt.Sprintf("http://api.wunderground.com/api/%s/forecast10day/q/%s.json", apiKey, zipCode)
     resp, err := http.Get(url)
-    defer resp.Body.Close()
     if err == nil {
+        defer resp.Body.Close()
         body, err := ioutil.ReadAll(resp.Body)
         if err == nil {
             json.Unmarshal(body, &forecast)
