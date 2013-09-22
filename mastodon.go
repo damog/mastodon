@@ -153,9 +153,10 @@ func Uptime(c *Config) *StatusInfo {
 }
 
 // Cache weather data.
+const maxDelay = 1800
 var latestWeatherStatus StatusInfo
 var latestWeatherCheck time.Time
-var cacheDelay = 1800
+var cacheDelay = 1
 
 func Weather(c *Config) *StatusInfo {
     si := NewStatus()
@@ -167,7 +168,10 @@ func Weather(c *Config) *StatusInfo {
     if err != nil || len(forecast.Forecast.SimpleForecast.ForecastDay) == 0 {
         si.FullText = "Error fetching weather"
         si.Status = STATUS_BAD
-        cacheDelay = 30
+        cacheDelay *= 2
+        if cacheDelay > maxDelay {
+            cacheDelay = maxDelay
+        }
     } else {
         today := forecast.Forecast.SimpleForecast.ForecastDay[0]
         next := forecast.Forecast.SimpleForecast.ForecastDay[1]
@@ -179,7 +183,7 @@ func Weather(c *Config) *StatusInfo {
         if next.Conditions != today.Conditions {
             si.FullText += fmt.Sprintf(" (%s)", next.Conditions)
         }
-        cacheDelay = 1800
+        cacheDelay = maxDelay
     }
     latestWeatherStatus = *si
     return si
