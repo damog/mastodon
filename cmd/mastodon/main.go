@@ -135,11 +135,11 @@ func main() {
         for idx, module_name := range(module_names) {
             si := Modules[module_name](&config)
             color := config.Data[module_name]
-            if _, ok := config.Data[color]; ok {
-                color = config.Data[color]
-            }
             if si.IsBad() {
                 color = config.Data["color_bad"]
+            }
+            if _, ok := config.Data[color]; ok {
+                color = config.Data[color]
             }
             jsonArray[idx] = map[string]string{
                 "full_text": si.FullText,
