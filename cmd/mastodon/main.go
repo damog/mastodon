@@ -1,12 +1,15 @@
 package main
 
 import (
+    "bufio"
+    "bytes"
     "encoding/json"
     "fmt"
     "github.com/coleifer/mastodon"
     "os"
-    //"os/exec"
+    "os/exec"
     "path/filepath"
+    "regexp"
     "strconv"
     "strings"
     "time"
@@ -62,7 +65,21 @@ func getDefaultConfig() mastodon.Config {
     return config
 }
 
-func ReadXresources(c mastodon.Config) {
+func ApplyXresources(c *mastodon.Config) {
+    out, err := exec.Command("xrdb", "-q").Output()
+    if err != nil {
+        return
+    }
+    scanner := bufio.NewScanner(bytes.NewReader(out))
+    re := regexp.MustCompile(`.*?(color[\d]+):\s*?(#[A-Za-z0-9]+)`)
+    for scanner.Scan() {
+        line := scanner.Text()
+        for _, match := range(re.FindAllStringSubmatch(line, -1)) {
+            if match != nil {
+                c.Data[match[1]] = match[2]
+            }
+        }
+    }
 }
 
 func ReadConfig(c mastodon.Config) {
@@ -76,6 +93,9 @@ func ReadConfig(c mastodon.Config) {
             pieces := strings.Split(line, "=")
             key := strings.Trim(pieces[0], " \t\r")
             value := strings.Trim(pieces[1], " \t\r")
+            if _, ok := c.Data[value]; ok {
+                value = c.Data[value]
+            }
             c.Data[key] = value
             return true
         }
@@ -98,6 +118,7 @@ func PrintHeader() {
 
 func main() {
     config := getDefaultConfig()
+    ApplyXresources(&config)
     ReadConfig(config)
     duration := ReadInterval(config)
 
@@ -113,7 +134,7 @@ func main() {
     for {
         for idx, module_name := range(module_names) {
             si := Modules[module_name](&config)
-            color := config.Data[config.Data[module_name]]
+            color := config.Data[module_name]
             if si.IsBad() {
                 color = config.Data["color_bad"]
             }
