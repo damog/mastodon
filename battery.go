@@ -1,6 +1,7 @@
 package mastodon
 
 import (
+    "errors"
     "fmt"
     "strconv"
     "strings"
@@ -28,11 +29,14 @@ func (batteryInfo *BatteryInfo) IsFull() bool {
     return batteryInfo.status == BATTERY_FULL
 }
 
-func ReadBatteryInfo(battery int) *BatteryInfo {
+func ReadBatteryInfo(battery int) (*BatteryInfo, error) {
     rawInfo := make(map[string]string)
     batteryInfo := new(BatteryInfo)
 
     path := fmt.Sprintf("/sys/class/power_supply/BAT%d/uevent", battery)
+    if !FileExists(path) {
+        return batteryInfo, errors.New("Battery not found")
+    }
     callback := func(line string) bool {
         data := strings.Split(string(line), "=")
         rawInfo[data[0]] = data[1]
@@ -75,8 +79,7 @@ func ReadBatteryInfo(battery int) *BatteryInfo {
     }
 
     if (fullDesign == 0) {
-        fmt.Println("Error, no battery(?)")
-        return batteryInfo
+        return batteryInfo, errors.New("Battery full design missing")
     }
 
     batteryInfo.PercentRemaining = (remaining / fullDesign) * 100
@@ -92,5 +95,5 @@ func ReadBatteryInfo(battery int) *BatteryInfo {
     }
     batteryInfo.Consumption = presentRate / 1000000.0
 
-    return batteryInfo
+    return batteryInfo, nil
 }

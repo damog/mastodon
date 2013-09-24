@@ -13,6 +13,7 @@ import (
 type Config struct {
     Data map[string]string
     BarSize int
+    Battery int
 }
 
 const (
@@ -57,7 +58,11 @@ func getBarString(percent float64, bar_size int) string {
 
 func Battery(c *Config) *StatusInfo {
     si := NewStatus()
-    bi := ReadBatteryInfo(0)
+    bi, err := ReadBatteryInfo(c.Battery)
+    if err != nil {
+        si.FullText = "No battery"
+        return si
+    }
     barString := getBarString(bi.PercentRemaining, c.BarSize)
     prefix := "BAT"
     if bi.IsCharging() {

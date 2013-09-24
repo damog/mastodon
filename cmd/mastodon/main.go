@@ -33,14 +33,16 @@ var Modules = map[string]StatusSource{
 func getDefaultConfig() mastodon.Config {
     var config mastodon.Config
     config.Data = map[string]string{
-        "interval": "1",
-        "order": "weather,cpu,memory,disk,battery,ip,loadavg,clock",
         "bar_size": "10",
+        "battery": "0",
+        "color_bad": "#d00000",
         "color_good": "#00d000",
         "color_normal": "#cccccc",
-        "color_bad": "#d00000",
+        "interval": "1",
+        "order": "weather,cpu,memory,disk,battery,ip,loadavg,clock",
     }
     config.BarSize, _ = strconv.Atoi(config.Data["bar_size"])
+    config.Battery, _ = strconv.Atoi(config.Data["battery"])
     return config
 }
 
