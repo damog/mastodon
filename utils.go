@@ -2,6 +2,7 @@ package mastodon
 
 import (
     "bufio"
+    "bytes"
     "fmt"
     "io"
     "os"
@@ -24,8 +25,8 @@ const (
     GB = MB * 1024
     TB = GB * 1024
 )
-var diskUsage = []uint64{TB, GB, MB, KB}
-var humanUsage = map[uint64]string{
+var diskUnits = []uint64{TB, GB, MB, KB}
+var humanUnits = map[uint64]string{
     KB: "KB",
     MB: "MB",
     GB: "GB",
@@ -62,13 +63,28 @@ func HumanDuration(n int64) string {
 }
 
 func HumanFileSize(n float64) (s string) {
-    for _, size := range(diskUsage) {
+    for _, size := range(diskUnits) {
         fsize := float64(size)
         if fsize < n {
-            return fmt.Sprintf("%.1f %s", n / fsize, humanUsage[size])
+            return fmt.Sprintf("%.1f %s", n / fsize, humanUnits[size])
         }
     }
     return fmt.Sprintf("%fb", n)
+}
+
+func MakeBar(percent float64, bar_size int) string {
+    var bar bytes.Buffer
+    cutoff := int(percent * .01 * float64(bar_size))
+    bar.WriteString("[")
+    for i := 0; i < bar_size; i += 1 {
+        if i <= cutoff {
+            bar.WriteString("#")
+        } else {
+            bar.WriteString(" ")
+        }
+    }
+    bar.WriteString("]")
+    return bar.String()
 }
 
 func ReadLines(fileName string, callback func(string) bool) {

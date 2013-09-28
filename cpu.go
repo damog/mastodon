@@ -7,7 +7,7 @@ import (
 
 var prevTotal, prevIdle uint64
 
-func CpuUsage() (cpuUsage float64) {
+func cpuUsage() (cpuUsage float64) {
     // Return the percent utilization of the CPU.
     var idle, total uint64
     callback := func(line string) bool {
@@ -35,4 +35,15 @@ func CpuUsage() (cpuUsage float64) {
     prevIdle = idle
     prevTotal = total
     return
+}
+
+func CPU(c *Config) *StatusInfo {
+    data := make(map[string]string)
+    cpuUsage := cpuUsage()
+    data["bar"] = MakeBar(cpuUsage, c.BarSize)
+    si := NewStatus(c.Templates["cpu"], data)
+    if cpuUsage > 80 {
+        si.Status = STATUS_BAD
+    }
+    return si
 }

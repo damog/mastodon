@@ -1,16 +1,9 @@
 package main
 
 import (
-    "bufio"
-    "bytes"
     "encoding/json"
     "fmt"
     "github.com/coleifer/mastodon"
-    "os"
-    "os/exec"
-    "path/filepath"
-    "regexp"
-    "strconv"
     "strings"
     "time"
 )
@@ -30,78 +23,22 @@ var Modules = map[string]StatusSource{
     "weather": mastodon.Weather,
 }
 
-func getDefaultConfig() mastodon.Config {
-    var config mastodon.Config
-    config.Data = map[string]string{
-        "bar_size": "10",
-        "battery": "0",
-        "color_bad": "#d00000",
-        "color_good": "#00d000",
-        "color_normal": "#cccccc",
-        "interval": "1",
-        "order": "weather,cpu,memory,disk,battery,ip,loadavg,clock",
-    }
-    config.BarSize, _ = strconv.Atoi(config.Data["bar_size"])
-    config.Battery, _ = strconv.Atoi(config.Data["battery"])
-    return config
-}
-
-func ApplyXresources(c *mastodon.Config) {
-    out, err := exec.Command("xrdb", "-q").Output()
-    if err != nil {
-        return
-    }
-    scanner := bufio.NewScanner(bytes.NewReader(out))
-    re := regexp.MustCompile(`.*?(color[\d]+):\s*?(#[A-Za-z0-9]+)`)
-    for scanner.Scan() {
-        line := scanner.Text()
-        for _, match := range(re.FindAllStringSubmatch(line, -1)) {
-            if match != nil {
-                c.Data[match[1]] = match[2]
-            }
-        }
-    }
-}
-
-func ReadConfig(c mastodon.Config) {
-    configHome := os.Getenv("XDG_CONFIG_HOME")
-    if configHome == "" {
-        configHome = filepath.Join(os.Getenv("HOME"), ".config")
-    }
-    configFile := filepath.Join(configHome, "mastodon.conf")
-    if mastodon.FileExists(configFile) {
-        LineHandler := func(line string) bool {
-            pieces := strings.Split(line, "=")
-            key := strings.Trim(pieces[0], " \t\r")
-            value := strings.Trim(pieces[1], " \t\r")
-            if _, ok := c.Data[value]; ok {
-                value = c.Data[value]
-            }
-            c.Data[key] = value
-            return true
-        }
-        mastodon.ReadLines(configFile, LineHandler)
-    }
-}
-
-func ReadInterval(c mastodon.Config) time.Duration {
-    interval, err := strconv.Atoi(c.Data["interval"])
-    if err != nil {
-        interval = 1
-    }
-    return time.Duration(interval) * time.Second
-}
-
 func PrintHeader() {
     fmt.Println("{\"version\":1}")
     fmt.Println("[")
 }
 
+func LoadConfig() mastodon.Config {
+    config := mastodon.NewConfig()
+    config.ApplyXresources()
+    config.ReadConfig()
+    config.Templates = mastodon.ParseTemplates(config)
+    return config
+}
+
 func main() {
-    config := getDefaultConfig()
-    ApplyXresources(&config)
-    ReadConfig(config)
-    duration := ReadInterval(config)
+    config := LoadConfig()
+    duration := config.ReadInterval()
 
     module_names := strings.Split(config.Data["order"], ",")
     for _, module_name := range(module_names) {

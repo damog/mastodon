@@ -7,7 +7,6 @@ import (
     "strings"
 )
 
-// Battery.
 const (
     BATTERY_DISCHARGING = iota
     BATTERY_CHARGING
@@ -29,7 +28,7 @@ func (batteryInfo *BatteryInfo) IsFull() bool {
     return batteryInfo.status == BATTERY_FULL
 }
 
-func ReadBatteryInfo(battery int) (*BatteryInfo, error) {
+func readBatteryInfo(battery int) (*BatteryInfo, error) {
     rawInfo := make(map[string]string)
     batteryInfo := new(BatteryInfo)
 
@@ -96,4 +95,27 @@ func ReadBatteryInfo(battery int) (*BatteryInfo, error) {
     batteryInfo.Consumption = presentRate / 1000000.0
 
     return batteryInfo, nil
+}
+
+
+func Battery(c *Config) *StatusInfo {
+    bi, err := readBatteryInfo(c.Battery)
+    data := make(map[string]string)
+    if err != nil {
+        return NewStatus(c.Templates["battery"], data)
+    }
+    data["bar"] = MakeBar(bi.PercentRemaining, c.BarSize)
+    data["prefix"] = "BAT"
+    if bi.IsCharging() {
+        data["prefix"] = "FULL"
+    } else if bi.IsCharging() {
+        data["prefix"] = "CHR"
+    }
+    data["remaining"] = HumanDuration(int64(bi.SecondsRemaining))
+    data["wattage"] = fmt.Sprintf("%.1f", bi.Consumption)
+    si := NewStatus(c.Templates["battery"], data)
+    if bi.PercentRemaining < 15 {
+        si.Status = STATUS_BAD
+    }
+    return si
 }
