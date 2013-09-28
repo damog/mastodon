@@ -104,6 +104,7 @@ func Battery(c *Config) *StatusInfo {
     if err != nil {
         return NewStatus(c.Templates["battery"], data)
     }
+    data["battery"] = "present"
     data["bar"] = MakeBar(bi.PercentRemaining, c.BarSize)
     data["prefix"] = "BAT"
     if bi.IsCharging() {
