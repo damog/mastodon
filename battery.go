@@ -108,9 +108,9 @@ func Battery(c *Config) *StatusInfo {
     data["bar"] = MakeBar(bi.PercentRemaining, c.BarSize)
     data["prefix"] = "BAT"
     if bi.IsCharging() {
-        data["prefix"] = "FULL"
-    } else if bi.IsCharging() {
         data["prefix"] = "CHR"
+    } else if bi.IsCharging() {
+        data["prefix"] = "FULL"
     }
     data["remaining"] = HumanDuration(int64(bi.SecondsRemaining))
     data["wattage"] = fmt.Sprintf("%.1f", bi.Consumption)
