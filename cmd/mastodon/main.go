@@ -28,11 +28,11 @@ func PrintHeader() {
     fmt.Println("[")
 }
 
-func LoadConfig() mastodon.Config {
+func LoadConfig() *mastodon.Config {
     config := mastodon.NewConfig()
     config.ApplyXresources()
     config.ReadConfig()
-    config.Templates = mastodon.ParseTemplates(config)
+    config.ParseTemplates()
     return config
 }
 
@@ -51,7 +51,7 @@ func main() {
     PrintHeader()
     for {
         for idx, module_name := range(module_names) {
-            si := Modules[module_name](&config)
+            si := Modules[module_name](config)
             color := config.Data[module_name]
             if si.IsBad() {
                 color = config.Data["color_bad"]

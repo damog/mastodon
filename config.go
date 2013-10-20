@@ -27,8 +27,8 @@ type Config struct {
 }
 
 
-func NewConfig() Config {
-    var config Config
+func NewConfig() *Config {
+    var config = new(Config)
     config.Data = map[string]string{
         "bar_size": "10",
         "battery": "0",
@@ -101,7 +101,7 @@ func (c Config) ReadInterval() time.Duration {
     return time.Duration(interval) * time.Second
 }
 
-func ParseTemplates(c Config) map[string]*template.Template {
+func (c *Config) ParseTemplates() {
     templates := make(map[string]*template.Template)
 
     for key, value := range(c.Data) {
@@ -116,5 +116,5 @@ func ParseTemplates(c Config) map[string]*template.Template {
             templates[name] = t
         }
     }
-    return templates
+    c.Templates = templates
 }
