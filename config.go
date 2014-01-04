@@ -31,7 +31,6 @@ func NewConfig() *Config {
     var config = new(Config)
     config.Data = map[string]string{
         "bar_size": "10",
-        "battery": "0",
         "color_bad": "#d00000",
         "color_good": "#00d000",
         "color_normal": "#cccccc",
